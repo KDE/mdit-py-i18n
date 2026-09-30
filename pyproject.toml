@@ -5,14 +5,19 @@
 requires = ["setuptools>=50"]
 build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[project]
 name = "mdit-py-i18n"
 version = "0.2.1"
 description = "Markdown i18n and l10n using markdown-it-py"
-authors = ["Phu Hung Nguyen <phuhnguyen@outlook.com>"]
-license = "LGPL-2.1-or-later"
+authors = [
+    { name = "Phu Hung Nguyen", email = "phuhnguyen@outlook.com" }
+]
+# This is a legacy way to specifiy the license
+license = {text = "LGPL-2.1-or-later"}
+# The below is be the modern replacement but not supported by setuptools with Python 3.8
+# See https://setuptools.pypa.io/en/stable/userguide/license_migration.html
+#license = "LGPL-2.1-or-later"
 readme = "README.md"
-repository = "https://github.com/phunh/mdit-py-i18n"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -21,12 +26,18 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3"
 ]
-packages = [{include = "mdit_py_i18n"}]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
-Pygments = "^2.16.1"
+# The KDE Scripty host runs an ancient Python 3.8. Check if this has changed,
+# before raising the minimum required Python version here!
+requires-python = ">=3.8"
+
+dependencies = [
+    "markdown-it-py[plugins]>=3.0.0",
+    "Pygments>=2.16.1",
+]
+
+[project.urls]
+Repository = "https://invent.kde.org/sdk/mdit-py-i18n.git"
 
 [tool.isort]
 profile = "black"
