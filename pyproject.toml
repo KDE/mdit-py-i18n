@@ -27,3 +27,39 @@ Pygments = "^2.16.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.tox]
+requires = ["tox>=4.19"]
+envlist = ["sort-imports"]
+
+[tool.tox.env.tests]
+description = "Runs pytest"
+deps = ["pytest"]
+commands = [["pytest"]]
+
+[tool.tox.env.lint]
+description = "runs flake8"
+skip_install = true
+deps = ["flake8==7.3.0"]
+commands = [["flake8", "."]]
+
+[tool.tox.env.check-imports]
+description = "runs isort --check"
+skip_install = true
+deps = ["isort==7.0.0"]
+commands = [["isort", "--check", "."]]
+
+[tool.tox.env.sort-imports]
+description = "runs isort"
+skip_install = true
+deps = ["isort==7.0.0"]
+commands = [["isort", "."]]
+
+[tool.tox.env.format]
+description = "runs black"
+skip_install = true
+deps = ["black==25.12.0"]
+commands = [["black", "."]]
