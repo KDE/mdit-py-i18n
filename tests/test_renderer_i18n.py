@@ -17,36 +17,38 @@ from mdit_py_i18n.renderer_i18n import RendererMarkdownI18N
 class I18NEntry:
     msgid: str
     occurrences: List[Tuple[str, int]] = field(default_factory=list)
-    comment: str = ''
-    msgctxt: str = ''
+    comment: str = ""
+    msgctxt: str = ""
 
 
 class DomainExtraction:
     def __init__(self):
         self.entries: List[I18NEntry] = []
 
-    def add_entry(self, path: str, msgid: str, line_num: int, comment: str = '', msgctxt: str = ''):
+    def add_entry(
+        self, path: str, msgid: str, line_num: int, comment: str = "", msgctxt: str = ""
+    ):
         self.entries.append(I18NEntry(msgid, [(path, line_num)], comment, msgctxt))
 
 
 class RendererMarkdownI18NTestCase(unittest.TestCase):
-    mdi = MarkdownIt(renderer_cls=RendererMarkdownI18N).use(front_matter_plugin)\
-        .enable('table').use(deflist_plugin)
+    mdi = (
+        MarkdownIt(renderer_cls=RendererMarkdownI18N)
+        .use(front_matter_plugin)
+        .enable("table")
+        .use(deflist_plugin)
+    )
 
     def test_renderer(self):
-        path = 'renderer.md'
+        path = "renderer.md"
         domain_e = DomainExtraction()
-        with pkg_resources.open_text('tests.resources', path) as f_obj:
-            env = {
-                'path': path,
-                'parse_fence': True,
-                'domain_extraction': domain_e
-            }
+        with pkg_resources.open_text("tests.resources", path) as f_obj:
+            env = {"path": path, "parse_fence": True, "domain_extraction": domain_e}
             tokens = self.mdi.parse(f_obj.read(), env)
         # skip front matter
         self.mdi.renderer.render(tokens[1:], self.mdi.options, env)
         self.assertEqual(21, len(domain_e.entries))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

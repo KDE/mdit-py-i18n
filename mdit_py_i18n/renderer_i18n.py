@@ -7,7 +7,7 @@ from typing import Sequence
 import pygments.token
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
-from markdown_it.utils import OptionsDict, EnvType
+from markdown_it.utils import EnvType, OptionsDict
 from pygments import lexers, util
 
 from . import utils
@@ -16,11 +16,13 @@ from .utils import DomainExtractionProtocol
 
 class MdCtx:
     def __init__(self, env: EnvType):
-        self.path: str = env['path']
-        self.parse_fence = env.get('parse_fence', False)
-        self.domain_e: DomainExtractionProtocol = env['domain_extraction']
+        self.path: str = env["path"]
+        self.parse_fence = env.get("parse_fence", False)
+        self.domain_e: DomainExtractionProtocol = env["domain_extraction"]
 
-    def add_entry(self, msgid: str, line_number: int, comment: str = '', msgctxt: str = ''):
+    def add_entry(
+        self, msgid: str, line_number: int, comment: str = "", msgctxt: str = ""
+    ):
         self.domain_e.add_entry(self.path, msgid, line_number, comment, msgctxt)
 
 
@@ -28,8 +30,9 @@ class RendererMarkdownI18N:
     """
     Implements `RendererProtocol`
     """
-    __output__ = 'pot'
-    
+
+    __output__ = "pot"
+
     def __init__(self, mdi: MarkdownIt):
         self.rules = {
             k: v
@@ -58,12 +61,12 @@ class RendererMarkdownI18N:
 
     @staticmethod
     def _link_ref(env: EnvType, md_ctx: MdCtx):
-        refs = env.get('references', {}).items()
+        refs = env.get("references", {}).items()
         if len(refs) == 0:
             return
         for ref, details in refs:
-            if title := details.get('title', ''):
-                md_ctx.add_entry(title, details['map'][0] + 1)
+            if title := details.get("title", ""):
+                md_ctx.add_entry(title, details["map"][0] + 1)
 
     @classmethod
     def front_matter(cls, tokens: Sequence[Token], idx: int, md_ctx: MdCtx):
@@ -73,8 +76,8 @@ class RendererMarkdownI18N:
     @classmethod
     def inline(cls, tokens: Sequence[Token], idx: int, md_ctx: MdCtx):
         token = tokens[idx]
-        content = utils.HARD_LINE_BREAK_PATTERN.sub('<br />', token.content.strip())
-        content = utils.SPACES_PATTERN.sub(' ', content.replace('\n', ' '))
+        content = utils.HARD_LINE_BREAK_PATTERN.sub("<br />", token.content.strip())
+        content = utils.SPACES_PATTERN.sub(" ", content.replace("\n", " "))
         if content and not utils.SPACES_PATTERN.fullmatch(content):
             md_ctx.add_entry(content, token.map[0] + 1)
 
@@ -91,7 +94,7 @@ class RendererMarkdownI18N:
 
         # temporary content of the comment being parsed
         # also indicates whether we are parsing a comment or not
-        comment = ''
+        comment = ""
         # number of the line where the comment starts
         comment_line_num = 0
         # number of the last line with a comment token
@@ -105,10 +108,10 @@ class RendererMarkdownI18N:
                 # when another comment is already being parsed and there's a blank line
                 if comment and line_num - last_comment_line_num > 1:
                     md_ctx.add_entry(comment, comment_line_num)
-                    comment = ''
+                    comment = ""
                     comment_line_num = 0
-                if comment != '':
-                    comment += ' '
+                if comment != "":
+                    comment += " "
                 if comment_match := utils.SINGLE_COMMENT_PATTERN.match(tok_val):
                     comment += comment_match.group(2).strip()
                 if comment_line_num == 0:
@@ -116,9 +119,9 @@ class RendererMarkdownI18N:
                 last_comment_line_num = line_num
             elif tok_val.strip() and comment:
                 md_ctx.add_entry(comment, comment_line_num)
-                comment = ''
+                comment = ""
                 comment_line_num = 0
-            line_num += tok_val.count('\n')
+            line_num += tok_val.count("\n")
         if comment:
             md_ctx.add_entry(comment, comment_line_num)
 
