@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 Phu Hung Nguyen <phuhnguyen@outlook.com>
 # SPDX-License-Identifier: CC0-1.0
 
+[build-system]
+requires = ["setuptools>=50"]
+build-backend = "setuptools.build_meta"
+
 [tool.poetry]
 name = "mdit-py-i18n"
 version = "0.2.1"
@@ -23,10 +27,6 @@ packages = [{include = "mdit_py_i18n"}]
 python = "^3.8"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 Pygments = "^2.16.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
