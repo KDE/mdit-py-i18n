@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 Julius Künzel <julius.kuenzel@kde.org>
+# SPDX-License-Identifier: CC0-1.0
+
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/reuse-lint.yml
+
+variables:
+  PYTHON_VERSION: "3.12"
+
+.uv_base:
+  variables:
+    UV_VERSION: "0.12.21"
+    BASE_LAYER: trixie-slim
+    # GitLab CI creates a separate mountpoint for the build directory,
+    # so we need to copy instead of using hard links.
+    UV_LINK_MODE: copy
+  image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
+  before_script:
+    - python3 --version
+
+.tox_base:
+  image: python:$PYTHON_VERSION
+  tags:
+    - Linux
+  interruptible: true
+  before_script:
+    - python --version
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - pip install tox
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: junit-*.xml
+
+imports:
+  stage: validate
+  extends: .tox_base
+  script: tox -e check-imports
+
+python-lint:
+  stage: validate
+  extends: .tox_base
+  script: tox -e lint
+
+build-uv:
+  stage: build
+  extends: .uv_base
+  script:
+    - uv build
+
+build-setuptools:
+  stage: build
+  image: python:$PYTHON_VERSION
+  before_script:
+    - python3 --version
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - pip install --upgrade build
+  script:
+    - python -m build
+
+# The Scripty host runs an ancient Python 3.8. Ensure compatibility.
+build-setuptools-legacy:
+  stage: build
+  variables:
+    PYTHON_VERSION: "3.8"
+  image: python:$PYTHON_VERSION
+  before_script:
+    - python3 --version
+    - python3 -m venv .venv
+    - source .venv/bin/activate
+    - pip install --upgrade build
+  script:
+    - python -m build
+
+tests:
+  stage: test
+  extends: .tox_base
+  script: tox -e tests
+
+dev-to-gitlab:
+  extends: .uv_base
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  stage: deploy
+  environment: development
+  variables:
+    UV_PUBLISH_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
+    UV_PUBLISH_USERNAME: "gitlab-ci-token"
+    UV_PUBLISH_PASSWORD: "${CI_JOB_TOKEN}"
+  script:
+    - uv version "$(uv version --short)".dev$CI_PIPELINE_IID
+    - uv build
+    - uv publish
